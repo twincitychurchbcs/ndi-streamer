@@ -157,7 +157,7 @@ CudaAppResult CudaApp::Create(const std::string &ndi_source_name, const std::str
 CudaApp::CudaApp(const std::string &ndi_source_name, const std::string &video_file_path) : _ndi_source_name(ndi_source_name), _video_file_path(video_file_path) {
 	auto err = _Initialize();
 	if(err != AV::Utils::AvError::NOERROR) {
-		throw err;
+		throw AV::Utils::AvException(err);
 	}
 }
 
