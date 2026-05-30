@@ -49,7 +49,7 @@ public:
      * Keep in mind that a copy(referenced) of the frame is made.
      * @param frame The frame to add
      */
-    AvException AddFrame(AVFrame *frame);
+    AvException AddFrame(AVFrame *frame, AVRational time_base);
     
     /**
      * @brief Get the next frame in the sequence
@@ -70,7 +70,7 @@ public:
 private:
     AvError _ReorderFrames();
 
-    std::vector<AVFrame *> _frames;
+    std::vector<std::pair<AVFrame *, AVRational>> _frames;
     int _capacity;
 };
 
