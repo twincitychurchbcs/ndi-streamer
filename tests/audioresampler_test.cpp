@@ -7,6 +7,11 @@
 
 #include <gtest/gtest.h>
 
+extern "C" {
+#include <libavutil/channel_layout.h>
+#include <libavutil/version.h>
+}
+
 #include "audioresampler.hpp"
 #include "decoder.hpp"
 #include "demuxer.hpp"
@@ -22,8 +27,13 @@ TEST(AudioResamplerTest, ResampleMultipleFrames) {
     AV::Utils::AudioResamplerConfig config;
     config.srcsamplerate = streams[1]->codecpar->sample_rate;
     config.dstsamplerate = 48000;
+#if LIBAVUTIL_VERSION_MAJOR >= 57
     config.srcchannellayout = streams[1]->codecpar->ch_layout;
     config.dstchannellayout = AV_CHANNEL_LAYOUT_STEREO;
+#else
+    config.srcchannellayout = streams[1]->codecpar->channel_layout ? streams[1]->codecpar->channel_layout : av_get_default_channel_layout(streams[1]->codecpar->channels);
+    config.dstchannellayout = AV_CH_LAYOUT_STEREO;
+#endif
     config.srcsampleformat = (AVSampleFormat)streams[1]->codecpar->format;
     config.dstsampleformat = AV_SAMPLE_FMT_FLTP;
 

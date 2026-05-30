@@ -14,7 +14,9 @@
 
 extern "C" {
 	#include <libavcodec/codec_par.h>
+	#include <libavutil/channel_layout.h>
 	#include <libavutil/pixfmt.h>
+	#include <libavutil/version.h>
 }
 
 AV::Utils::AvException CudaApp::Run() {
@@ -213,8 +215,13 @@ AV::Utils::AvError CudaApp::_Initialize() {
 	AV::Utils::AudioResamplerConfig audio_resampler_config{};
 	audio_resampler_config.srcsamplerate = audio_cparam->sample_rate;
 	audio_resampler_config.dstsamplerate = audio_cparam->sample_rate;
+#if LIBAVUTIL_VERSION_MAJOR >= 57
 	audio_resampler_config.srcchannellayout = audio_cparam->ch_layout;
 	audio_resampler_config.dstchannellayout = AV_CHANNEL_LAYOUT_STEREO;
+#else
+	audio_resampler_config.srcchannellayout = audio_cparam->channel_layout ? audio_cparam->channel_layout : av_get_default_channel_layout(audio_cparam->channels);
+	audio_resampler_config.dstchannellayout = AV_CH_LAYOUT_STEREO;
+#endif
 	audio_resampler_config.srcsampleformat = (AVSampleFormat)audio_cparam->format;
 	audio_resampler_config.dstsampleformat = AV_SAMPLE_FMT_S16;
 

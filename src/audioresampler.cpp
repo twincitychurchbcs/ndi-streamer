@@ -38,7 +38,12 @@ FUNCTION_CALL_DEBUG();
     av_frame_unref(m_dst_frame);
 
     // Setup destination frame
+#if LIBAVUTIL_VERSION_MAJOR >= 57
     m_dst_frame->ch_layout = m_config.dstchannellayout;
+#else
+    m_dst_frame->channel_layout = m_config.dstchannellayout;
+    m_dst_frame->channels = GetChannelCount(m_config.dstchannellayout);
+#endif
     m_dst_frame->sample_rate = m_config.dstsamplerate;
     m_dst_frame->format = m_config.dstsampleformat;
     m_dst_frame->nb_samples = av_rescale_rnd(swr_get_delay(m_swr_context, m_config.srcsamplerate) + src_frame->nb_samples, m_config.dstsamplerate, m_config.srcsamplerate, AV_ROUND_UP);
@@ -139,8 +144,13 @@ AvError AudioResampler::m_Initialize() {
     }
 
     // Set options
+#if LIBAVUTIL_VERSION_MAJOR >= 57
     av_opt_set_chlayout(m_swr_context, "in_channel_layout", &m_config.srcchannellayout, 0);
     av_opt_set_chlayout(m_swr_context, "out_channel_layout", &m_config.dstchannellayout, 0);
+#else
+    av_opt_set_channel_layout(m_swr_context, "in_channel_layout", m_config.srcchannellayout, 0);
+    av_opt_set_channel_layout(m_swr_context, "out_channel_layout", m_config.dstchannellayout, 0);
+#endif
 
     av_opt_set_int(m_swr_context, "in_sample_rate", m_config.srcsamplerate, 0);
     av_opt_set_int(m_swr_context, "out_sample_rate", m_config.dstsamplerate, 0);
@@ -152,13 +162,13 @@ AvError AudioResampler::m_Initialize() {
           "Sample Rate: %d\n"
           "Channels: %d\n"
           "Sample Format: %s\n",
-          m_config.srcsamplerate, m_config.srcchannellayout.nb_channels, av_get_sample_fmt_name(m_config.srcsampleformat));
+          m_config.srcsamplerate, GetChannelCount(m_config.srcchannellayout), av_get_sample_fmt_name(m_config.srcsampleformat));
 
     DEBUG("Destination Config\n"
           "Sample Rate: %d\n"
           "Channels: %d\n"
           "Sample Format: %s\n",
-          m_config.dstsamplerate, m_config.dstchannellayout.nb_channels, av_get_sample_fmt_name(m_config.dstsampleformat));
+          m_config.dstsamplerate, GetChannelCount(m_config.dstchannellayout), av_get_sample_fmt_name(m_config.dstsampleformat));
 
     // Initialize the context
     int ret = swr_init(m_swr_context);
