@@ -25,12 +25,13 @@ add_dependencies(decoder_test download_video)
 add_dependencies(pixelencoder_test download_video)
 add_dependencies(audioresampler_test download_video)
 
-include_directories(${NDI_INCLUDE_DIR} ${FFMPEG_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS} ../src)
+include_directories(${NDI_INCLUDE_DIR} ${GTEST_INCLUDE_DIRS} ../src)
+include_directories(BEFORE ${FFMPEG_INCLUDE_DIRS})
 
-target_link_libraries(demuxer_test PRIVATE GTest::gtest GTest::gtest_main ${FFMPEG_LIBRARIES})
-target_link_libraries(decoder_test PRIVATE GTest::gtest GTest::gtest_main ${FFMPEG_LIBRARIES})
-target_link_libraries(pixelencoder_test PRIVATE GTest::gtest GTest::gtest_main ${FFMPEG_LIBRARIES})
-target_link_libraries(audioresampler_test PRIVATE GTest::gtest GTest::gtest_main ${FFMPEG_LIBRARIES})
+target_link_libraries(demuxer_test PRIVATE GTest::gtest GTest::gtest_main PkgConfig::FFMPEG)
+target_link_libraries(decoder_test PRIVATE GTest::gtest GTest::gtest_main PkgConfig::FFMPEG)
+target_link_libraries(pixelencoder_test PRIVATE GTest::gtest GTest::gtest_main PkgConfig::FFMPEG)
+target_link_libraries(audioresampler_test PRIVATE GTest::gtest GTest::gtest_main PkgConfig::FFMPEG)
 
 # Set up demuxer tests
 add_test(NAME demuxer_test COMMAND demuxer_test)
