@@ -135,7 +135,7 @@ CudaDecoder::CudaDecoder(AVCodecParameters *codecpar) : m_codecpar(codecpar) {
 
     AvError err = m_Initialize();
     if (err != AvError::NOERROR) {
-        throw err;
+        throw AvException(err);
     }
 }
 
