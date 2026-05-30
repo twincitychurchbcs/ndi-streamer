@@ -15,6 +15,7 @@
 
 extern "C" {
 #include <libavutil/imgutils.h>
+#include <libavutil/version.h>
 }
 
 namespace AV::Utils {
@@ -215,7 +216,11 @@ AvError AsyncNDISource::_SendAudioFrame(const AVFrame *frame) {
     NDIlib_audio_frame_interleaved_16s_t audio_frame;
 
     audio_frame.sample_rate = frame->sample_rate;
+#if LIBAVUTIL_VERSION_MAJOR >= 57
     audio_frame.no_channels = frame->ch_layout.nb_channels;
+#else
+    audio_frame.no_channels = frame->channels;
+#endif
     audio_frame.no_samples = frame->nb_samples;
     audio_frame.timecode = NDIlib_send_timecode_synthesize;
     audio_frame.p_data = (int16_t *)frame->data[0];

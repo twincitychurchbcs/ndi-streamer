@@ -13,6 +13,8 @@
 // 3rd party depednencies
 extern "C" {
 #include <libswresample/swresample.h>
+#include <libavutil/channel_layout.h>
+#include <libavutil/version.h>
 }
 
 // Standard c++ dependencies
@@ -30,9 +32,23 @@ using AudioResamplerOutput = std::pair<AVFrame *, AvException>;
  */
 typedef struct AudioResamplerConfig {
     int srcsamplerate, dstsamplerate;
+#if LIBAVUTIL_VERSION_MAJOR >= 57
     AVChannelLayout srcchannellayout, dstchannellayout;
+#else
+    uint64_t srcchannellayout, dstchannellayout;
+#endif
     AVSampleFormat srcsampleformat, dstsampleformat;
 } AudioResamplerConfig, *pAudioResamplerConfig;
+
+#if LIBAVUTIL_VERSION_MAJOR >= 57
+inline int GetChannelCount(const AVChannelLayout &layout) {
+    return layout.nb_channels;
+}
+#else
+inline int GetChannelCount(uint64_t layout) {
+    return av_get_channel_layout_nb_channels(layout);
+}
+#endif
 
 /**
  * @brief The AudioResampler class provides utilities for resampling audio.
