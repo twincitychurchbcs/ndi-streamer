@@ -173,10 +173,12 @@ AV::Utils::AvError CudaApp::_Initialize() {
 
 	// Get codecs and stream ids
 	AVCodecParameters *video_cparam = nullptr, *audio_cparam = nullptr;
+	AVRational video_frame_rate{};
 	int vcount = 0, acount = 0;
 	for (auto stream : _demuxer->GetStreamPointers()) {
 		if(stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 			video_cparam = stream->codecpar;
+			video_frame_rate = stream->r_frame_rate;
 			_video_stream_index = stream->index;
 			_video_time_base = stream->time_base;
 			vcount++;
@@ -234,7 +236,7 @@ AV::Utils::AvError CudaApp::_Initialize() {
 	_audio_resampler = std::move(audio_resampler);
 
 	// Create NDI Source
-	auto [ndi_source, ndi_source_err] = AV::Utils::AsyncNDISource::Create(_ndi_source_name, video_cparam->framerate);
+	auto [ndi_source, ndi_source_err] = AV::Utils::AsyncNDISource::Create(_ndi_source_name, video_frame_rate);
 	if(ndi_source_err.code()) {
 		DEBUG("NDI Source error: %s", ndi_source_err.what());
 		return (AV::Utils::AvError)ndi_source_err.code();
