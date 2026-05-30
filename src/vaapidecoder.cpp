@@ -92,7 +92,7 @@ VAAPIDecoderOutput VAAPIDecoder::Decode() {
 
     // Print frame info
     DEBUG("Frame: %dx%d, format: %s", m_last_frame->width, m_last_frame->height, av_get_pix_fmt_name((AVPixelFormat)m_last_frame->format));
-    DEBUG("Time base: %d/%d", m_last_frame->time_base.num, m_last_frame->time_base.den);
+    DEBUG("Time base: %d/%d", m_codec->time_base.num, m_codec->time_base.den);
 
     // Print some pixel data from Y and UV
     uint8_t *y_data = m_last_frame->data[0];

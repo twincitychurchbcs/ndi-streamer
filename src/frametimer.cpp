@@ -33,7 +33,7 @@ FrameTimer::~FrameTimer() {
     FUNCTION_CALL_DEBUG();
 
     // Free all frames
-    for (auto frame : _frames) {
+    for (auto &[frame, tb] : _frames) {
         av_frame_free(&frame);
     }
 }
@@ -45,7 +45,7 @@ FrameTimer::~FrameTimer() {
  * @param frame The frame to add
  * @return AvException
  */
-AvException FrameTimer::AddFrame(AVFrame *frame) {
+AvException FrameTimer::AddFrame(AVFrame *frame, AVRational time_base) {
     FUNCTION_CALL_DEBUG();
 
     if(_frames.size() >= _capacity) {
@@ -53,8 +53,8 @@ AvException FrameTimer::AddFrame(AVFrame *frame) {
     }
 
     // Check if frame has valid time_base and pts
-    if (frame->pts == AV_NOPTS_VALUE || frame->time_base.den == 0) {
-        PRINT("Invalid Frame Info: PTS: %ld, Time Base: %d/%d", frame->pts, frame->time_base.num, frame->time_base.den);
+    if (frame->pts == AV_NOPTS_VALUE || time_base.den == 0) {
+        PRINT("Invalid Frame Info: PTS: %ld, Time Base: %d/%d", frame->pts, time_base.num, time_base.den);
 
         // What type of frame is this?
         PrintPictType(frame->pict_type);
@@ -69,7 +69,7 @@ AvException FrameTimer::AddFrame(AVFrame *frame) {
     }
 
     // Add the frame to the vector
-    _frames.push_back(new_frame);
+    _frames.push_back({new_frame, time_base});
 
     // Reorder frames
     auto err = _ReorderFrames();
@@ -99,7 +99,7 @@ AVFrame *FrameTimer::GetFrame() {
     }
 
     // Pop a frame off
-    AVFrame *frame = _frames.back();
+    auto [frame, tb] = _frames.back();
     _frames.pop_back();
 
 #ifdef _DEBUG
@@ -150,10 +150,10 @@ AvError FrameTimer::_ReorderFrames() {
 #endif
 
     // Sort the frames based on pts order
-    std::sort(_frames.begin(), _frames.end(), [](AVFrame *a, AVFrame *b) {
+    std::sort(_frames.begin(), _frames.end(), [](const std::pair<AVFrame *, AVRational> &a, const std::pair<AVFrame *, AVRational> &b) {
         // Force a universal time unit of microseconds
-        auto apts = av_rescale_q(a->pts, a->time_base, {1, 1000000});
-        auto bpts = av_rescale_q(b->pts, b->time_base, {1, 1000000});
+        auto apts = av_rescale_q(a.first->pts, a.second, {1, 1000000});
+        auto bpts = av_rescale_q(b.first->pts, b.second, {1, 1000000});
 
         return apts > bpts;
     });

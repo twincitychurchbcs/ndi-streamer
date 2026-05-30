@@ -82,7 +82,7 @@ AV::Utils::AvException VAAPIApp::Run() {
 				break;
 			}
 
-			auto err = _frame_timer.AddFrame(decoded_frame);
+			auto err = _frame_timer.AddFrame(decoded_frame, _video_time_base);
 			if(err.code()) {
 				ERROR("Failed to add frame to timer: %s", err.what());
 				break;
@@ -117,7 +117,7 @@ AV::Utils::AvException VAAPIApp::Run() {
 				break;
 			}
 
-			auto err = _frame_timer.AddFrame(resampled_frame);
+			auto err = _frame_timer.AddFrame(resampled_frame, _audio_time_base);
 			if (err.code()) {
 				ERROR("Failed to add frame to timer: %s", err.what());
 				break;
@@ -174,16 +174,16 @@ AV::Utils::AvError VAAPIApp::_Initialize() {
 	// Get codecs and stream ids
 	AVCodecParameters *video_cparam = nullptr, *audio_cparam = nullptr;
 	int vcount = 0, acount = 0;
-	AVRational video_time_base{};
 	for (auto stream : _demuxer->GetStreamPointers()) {
 		if(stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 			video_cparam = stream->codecpar;
 			_video_stream_index = stream->index;
-			video_time_base = stream->time_base;
+			_video_time_base = stream->time_base;
 			vcount++;
 		} else if(stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
 			audio_cparam = stream->codecpar;
 			_audio_stream_index = stream->index;
+			_audio_time_base = stream->time_base;
 			acount++;
 		}
 	}

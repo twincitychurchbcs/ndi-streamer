@@ -21,6 +21,7 @@
 
 extern "C" {
 	#include <libavcodec/codec_par.h>
+	#include <libavutil/rational.h>
 }
 
 // Standard C++ includes
@@ -57,4 +58,6 @@ private:
 
 	int _video_stream_index = -1;
 	int _audio_stream_index = -1;
+	AVRational _video_time_base{};
+	AVRational _audio_time_base{};
 };
