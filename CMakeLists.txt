@@ -21,8 +21,9 @@ find_package(NDISDK REQUIRED)
 # Find FFMPEG
 find_package(FFMPEG REQUIRED)
 
-# Include NDI SDK headers
-include_directories(${NDI_INCLUDE_DIR} ${FFMPEG_INCLUDE_DIRS})
+# Include NDI SDK headers; FFMPEG include dirs come from PkgConfig::FFMPEG target
+include_directories(${NDI_INCLUDE_DIR})
+include_directories(BEFORE ${FFMPEG_INCLUDE_DIRS})
 
 # Define sources
 set(SOURCES
@@ -45,10 +46,10 @@ set(SOURCES
 # Set executable name
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_executable(ndistreamer_debug ${SOURCES})
-    target_link_libraries(ndistreamer_debug ${NDI_LIB} ${FFMPEG_LIBRARIES})
+    target_link_libraries(ndistreamer_debug ${NDI_LIB} PkgConfig::FFMPEG)
 else()
     add_executable(ndistreamer ${SOURCES})
-    target_link_libraries(ndistreamer ${NDI_LIB} ${FFMPEG_LIBRARIES})
+    target_link_libraries(ndistreamer ${NDI_LIB} PkgConfig::FFMPEG)
 endif()
 
 # Enable testing
